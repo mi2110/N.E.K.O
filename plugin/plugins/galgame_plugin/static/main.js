@@ -5659,21 +5659,38 @@ function renderAgentStatus(payload) {
       ${item.error ? `<p>${escapeHtml(item.error)}</p>` : ''}
     </article>
   `);
+
+  const panelSummary = document.getElementById('agentPanelSummary');
+  if (panelSummary) {
+    const mode = latestStatus?.mode || 'companion';
+    const modeText = uiT(`ui.mode.${mode}`, mode);
+    const inbound = payload.inbound_queue_size || 0;
+    const outbound = payload.outbound_queue_size || 0;
+    panelSummary.textContent = `${modeText} | in=${inbound} out=${outbound}`;
+  }
 }
 
 function renderAgentStatusGrid(rows, summaryRows) {
   const container = document.getElementById('agentStatusGrid');
   const debugWasOpen = Boolean(container?.querySelector('.status-debug-panel')?.open);
   renderPreservingScroll(container, () => {
+    const visibleRows = Array.isArray(rows) ? rows : [];
+    const visibleSummaryRows = Array.isArray(summaryRows) ? summaryRows : [];
+    if (!visibleRows.length) {
+      container.className = 'data-grid scroll-region empty-state';
+      container.textContent = uiT('ui.agent.empty_status', 'Agent 正在整理小本本，等第一次状态刷新。');
+      return;
+    }
+    container.className = 'data-grid scroll-region';
     container.innerHTML = `
-      ${renderDataRows(rows)}
+      ${renderDataRows(visibleRows)}
       <details class="status-debug-panel"${debugWasOpen ? ' open' : ''}>
         <summary>
           <span>${escapeHtml(uiT('ui.agent.summary_debug', 'Summary 调试'))}</span>
-          <small>${escapeHtml(uiTf('ui.agent.summary_debug_count', '{count} 项内部状态', { count: summaryRows.length }))}</small>
+          <small>${escapeHtml(uiTf('ui.agent.summary_debug_count', '{count} 项内部状态', { count: visibleSummaryRows.length }))}</small>
         </summary>
         <dl class="data-grid">
-          ${renderDataRows(summaryRows)}
+          ${renderDataRows(visibleSummaryRows)}
         </dl>
       </details>
     `;
@@ -5723,7 +5740,7 @@ function renderSuggest(payload) {
             <h3>${escapeHtml(item.text || '')}</h3>
             <p>${escapeHtml(item.reason || '')}</p>
           </article>
-        `).join('') : `<div class="empty-inline">${escapeHtml(payload.diagnostic || 'No suggestion yet')}</div>`}
+        `).join('') : `<div class="empty-inline agent-suggest-empty"><span class="agent-suggest-empty-face" aria-hidden="true">(=^..^=)</span><span>${escapeHtml(payload.diagnostic || uiT('ui.agent.empty_suggest', '还没有建议，等画面出现选项再轻轻递上来。'))}</span></div>`}
       </div>
     `;
   });
@@ -6682,7 +6699,7 @@ async function resumeAgentFromButton() {
 }
 
 async function askAgent(action) {
-  const prompt = document.getElementById('agentPromptInput').value.trim();
+  const prompt = document.getElementById('agentPromptInput')?.value.trim() || '';
   if (!prompt) {
     setFlash(uiT('ui.flash.agent_prompt_required', '请输入要发送给 Agent 的文本'), 'error');
     return;
@@ -7388,10 +7405,28 @@ document.getElementById('standbyOnBtn').addEventListener('click', () => {
 document.getElementById('standbyOffBtn').addEventListener('click', () => {
   withButtonPending('standbyOffBtn', uiT('ui.pending.processing', '处理中...'), resumeAgentFromButton).catch((error) => { console.error('[galgame] async action failed', error); });
 });
-document.getElementById('queryContextBtn').addEventListener('click', () => {
+document.querySelector('.agent-panel-tabs')?.addEventListener('click', (event) => {
+  const target = eventElement(event.target);
+  const tab = target ? target.closest('[data-agent-tab]') : null;
+  if (!tab) {
+    return;
+  }
+  const name = tab.getAttribute('data-agent-tab') || '';
+  document.querySelectorAll('.agent-tab').forEach((item) => {
+    const active = item === tab;
+    item.classList.toggle('active', active);
+    item.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-agent-tab-panel]').forEach((panel) => {
+    const active = panel.getAttribute('data-agent-tab-panel') === name;
+    panel.hidden = !active;
+    panel.setAttribute('aria-hidden', active ? 'false' : 'true');
+  });
+});
+document.getElementById('queryContextBtn')?.addEventListener('click', () => {
   withButtonPending('queryContextBtn', uiT('ui.pending.querying', '查询中...'), () => askAgent('query_context')).catch((error) => { console.error('[galgame] async action failed', error); });
 });
-document.getElementById('sendMessageBtn').addEventListener('click', () => {
+document.getElementById('sendMessageBtn')?.addEventListener('click', () => {
   withButtonPending('sendMessageBtn', uiT('ui.pending.sending', '发送中...'), () => askAgent('send_message')).catch((error) => { console.error('[galgame] async action failed', error); });
 });
 document.getElementById('memoryProcessRefreshBtn').addEventListener('click', () => {
