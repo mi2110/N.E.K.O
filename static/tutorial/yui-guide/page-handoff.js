@@ -1296,7 +1296,8 @@
         return openPage(
             url,
             windowName,
-            buildFullscreenWindowFeatures()
+            buildFullscreenWindowFeatures(),
+            { keepMainUIVisible: true }
         );
     }
 
