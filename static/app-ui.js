@@ -844,6 +844,38 @@
 
     mod.hideLive2d = hideLive2d;
 
+    function restoreLive2DDisplaySurface(reason) {
+        if (document.body && document.body.classList) {
+            document.body.classList.remove('yui-guide-live2d-preparing');
+            document.body.classList.remove('yui-guide-return-petal-fade');
+        }
+        if (document.body && document.body.style && typeof document.body.style.removeProperty === 'function') {
+            document.body.style.removeProperty('--yui-guide-return-avatar-opacity');
+        }
+
+        const live2dContainer = document.getElementById('live2d-container');
+        if (live2dContainer) {
+            live2dContainer.classList.remove('hidden');
+            live2dContainer.classList.remove('minimized');
+            live2dContainer.removeAttribute('data-neko-model-goodbye-exiting');
+            live2dContainer.style.display = 'block';
+            live2dContainer.style.visibility = 'visible';
+            live2dContainer.style.removeProperty('transition');
+            live2dContainer.style.removeProperty('opacity');
+            live2dContainer.style.removeProperty('pointer-events');
+        }
+
+        const live2dCanvas = document.getElementById('live2d-canvas');
+        if (live2dCanvas) {
+            live2dCanvas.classList.remove('minimized');
+            live2dCanvas.style.display = 'block';
+            live2dCanvas.style.removeProperty('transition');
+            live2dCanvas.style.setProperty('opacity', '1', 'important');
+            live2dCanvas.style.setProperty('visibility', 'visible', 'important');
+            live2dCanvas.style.setProperty('pointer-events', 'auto', 'important');
+        }
+    }
+
     function activateLive2DRenderForDisplay(reason) {
         const manager = window.live2dManager || null;
         const app = manager && manager.pixi_app;
@@ -1027,11 +1059,7 @@
             if (fadeModel && !fadeModel.destroyed) {
                 fadeModel.alpha = 1;
             }
-            const live2dCanvas = document.getElementById('live2d-canvas');
-            if (live2dCanvas) {
-                live2dCanvas.style.setProperty('visibility', 'visible', 'important');
-                live2dCanvas.style.setProperty('pointer-events', 'auto', 'important');
-            }
+            restoreLive2DDisplaySurface('show-live2d-fast-path');
             const pixiApp = window.live2dManager ? window.live2dManager.pixi_app : null;
             if (pixiApp && pixiApp.ticker && !pixiApp.ticker.started) {
                 pixiApp.ticker.start();

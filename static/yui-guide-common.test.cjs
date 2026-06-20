@@ -1360,6 +1360,14 @@ test('settings tour flow owns migrated settings tour concrete scene bodies', () 
         /runPanelNarrationEllipse[\s\S]*director\.setHomePcCursorOutputSuppressedForExternalizedChat\(false\);[\s\S]*director\.cursor\.runPauseAwareEllipse/
     );
     assert.match(
+        settingsTourFlowSource,
+        /const waitForEllipseYield = async \(\) => \{[\s\S]*Promise\.race\(\[narrationSettledPromise,\s*delayPromise\]\)/
+    );
+    assert.match(
+        settingsTourFlowSource,
+        /director\.cursor\.runPauseAwareEllipse[\s\S]*await waitForEllipseYield\(\);/
+    );
+    assert.match(
         source,
         /async moveCursorToElement\(element,\s*durationMs,\s*options\) \{[\s\S]*this\.setHomePcCursorOutputSuppressedForExternalizedChat\(false\);[\s\S]*this\.cursor\.moveToRect/
     );
@@ -1818,7 +1826,10 @@ test('manager keeps Yui-only lifecycle resources and excludes legacy driver tuto
     assert.doesNotMatch(scrollBlock, /window\.addEventListener\('wheel'/);
     assert.doesNotMatch(unblockScrollBlock, /window\.removeEventListener\('wheel'/);
 
-    assert.match(startBlock, /this\.startAvatarFloatingGuideRound\(1, \{/);
+    assert.match(source, /getHomeAvatarFloatingGuideStartRound\(options = \{\}\) \{/);
+    assert.match(source, /candidates\.push\(state\.pendingRound, state\.manualResetRound, 1\);/);
+    assert.match(startBlock, /const round = this\.getHomeAvatarFloatingGuideStartRound\(\);/);
+    assert.match(startBlock, /this\.startAvatarFloatingGuideRound\(round, \{/);
     assert.doesNotMatch(source, /startYuiGuideSceneSequence|getDirectYuiGuideSceneIdsForCurrentPage|getPendingYuiGuideResumeScene/);
     assert.doesNotMatch(source, /callYuiGuideDirector|notifyYuiGuideStepEnter|notifyYuiGuideStepLeave/);
     assert.doesNotMatch(source, /waitForDriver|initDriver|getDriverConfig|recreateDriverWithI18n|startTutorialSteps|onStepChange/);
