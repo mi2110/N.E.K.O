@@ -393,6 +393,42 @@ def test_vulnerability_cross_locale_mixed_language():
     assert scan_vulnerability_keywords("exhausted and so alone") >= 2
 
 
+def test_vulnerability_profanity_counts_as_cue():
+    # Profanity/venting is part of the vulnerability lexicon now — swearing is
+    # a strong distress tell. Sampled across every locale.
+    for msg in [
+        "草泥马这也太难了", "靠北喔", "fuck this", "this is bullshit",
+        "もうくそだ", "씨발 진짜", "блять как же тяжело", "joder qué mierda",
+        "que merda, caralho",
+    ]:
+        assert scan_vulnerability_keywords(msg) >= 1, msg
+
+
+def test_vulnerability_profanity_avoids_short_substring_false_positives():
+    # The risky short forms (ass / 操 / 幹 / hell) must NOT match ordinary words
+    # — we only ship the longer, non-embedding profanity forms.
+    for clean in [
+        "please pass the class", "let me assume the worst",
+        "我先操作一下电脑", "去操场跑步", "他幹活很认真", "shell command",
+        # reviewer-flagged neutral substrings we deliberately dropped:
+        "垃圾桶在哪", "垃圾分类怎么做",          # bare 垃圾 removed
+        "找 tmdb 上的评分", "tmdb 这部电影",      # bare tmd removed (TMDB)
+        "застрахуй меня", "надо страхуй оформить",  # bare хуй removed (insurance)
+    ]:
+        assert scan_vulnerability_keywords(clean) == 0, clean
+
+
+def test_vulnerability_excludes_filler_interjections():
+    # Mild interjections that have become everyday filler are deliberately NOT
+    # cues — too noisy as a distress signal (卧槽好牛 / damn cool are often
+    # positive; 馬鹿 is affectionate; 존나 means "very").
+    for filler in [
+        "卧槽这也太牛了", "我擦真的假的", "wtf is this", "damn that's cool",
+        "馬鹿だなあ", "존나 좋아", "hostia tío", "que cacete bom",
+    ]:
+        assert scan_vulnerability_keywords(filler) == 0, filler
+
+
 def test_topic_switch_anchored_at_start():
     assert detect_topic_switch("对了，今天天气怎么样") is True
     assert detect_topic_switch("by the way, did you eat") is True
