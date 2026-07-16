@@ -153,20 +153,8 @@ _REACT_CHAT_ASSET_VERSION_PATHS = (
     *_PROJECT_ROOT.glob("static/app/app-react-chat-window/*.js"),
     _PROJECT_ROOT / "static/app/app-chat-adapter.js",
     _PROJECT_ROOT / "static/app/app-buttons.js",
-    _PROJECT_ROOT / "static/icons/edit_tool_unified.png",
-    _PROJECT_ROOT / "static/icons/chat_sugar1.png",
-    _PROJECT_ROOT / "static/icons/chat_sugar2.png",
-    _PROJECT_ROOT / "static/icons/chat_sugar3.png",
-    _PROJECT_ROOT / "static/icons/chat_sugar1_cursor.png",
-    _PROJECT_ROOT / "static/icons/chat_sugar2_cursor.png",
-    _PROJECT_ROOT / "static/icons/cat_claw1.png",
-    _PROJECT_ROOT / "static/icons/cat_claw2.png",
-    _PROJECT_ROOT / "static/icons/cat_claw1_cursor.png",
-    _PROJECT_ROOT / "static/icons/cat_claw2_cursor.png",
-    _PROJECT_ROOT / "static/icons/chat_hammer1.png",
-    _PROJECT_ROOT / "static/icons/chat_hammer2.png",
-    _PROJECT_ROOT / "static/icons/chat_hammer1_cursor.png",
-    _PROJECT_ROOT / "static/icons/chat_hammer2_cursor.png",
+    *sorted(_PROJECT_ROOT.glob("static/assets/avatar-tools/**/*.png")),
+    *sorted(_PROJECT_ROOT.glob("static/sounds/avatar-tools/**/*.mp3")),
 )
 _REACT_CHAT_ASSET_CACHE_TTL = 30.0
 _react_chat_asset_version_cache: tuple[float, str] = (0.0, "0")
